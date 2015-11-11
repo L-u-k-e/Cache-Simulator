@@ -1,6 +1,7 @@
 # Cache-Simulator
 Simulates a configurable set-associative cache on a provided trace of memory accesses
 
+LRU is used when determining which set to evict.
 
 ##Required Arguments:
  - **`--slots`**
