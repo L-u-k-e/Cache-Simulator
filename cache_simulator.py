@@ -44,18 +44,25 @@ args = arg_parser.parse_args()
 def main():
   lines = readlines(args.file)
   memory_accesses = parseTraceInfo(lines)
-  
-  cache = [[None] * args.sets] * args.slots 
+   
+  cache = [[{'tag': None, 'LRU': 0} for x in range(args.sets)] for y in range(args.slots)]
   misses = { 'total': 0, 'instruction': 0, 'data': 0  }
   
   for entry in memory_accesses:
     slot = cache[entry['slot']]
-    match = next((tag for tag in slot if tag == entry['tag']), None)
+    match = None
+    for set in slot:
+      if set['tag'] != entry['tag']:
+        set['LRU'] += 1
+      else:
+        set['LRU'] = 0
+        match = set
     if not match:
-      slot.pop()
-      slot.insert(0, entry['tag'])
       misses[entry['type']] += 1
-
+      evict_me = max(slot, key = lambda _set: _set['LRU'])
+      evict_me['tag'] = entry['tag']
+      evict_me['LRU'] = 0
+      
   misses['total'] = misses['instruction'] + misses['data']
   number_of_accesses = len(memory_accesses)
   for key, value in misses.items():
